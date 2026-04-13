@@ -19,6 +19,11 @@ MIN_POSTS = 30
 MAX_POSTS = 50
 
 
+def is_modern_post(post: dict) -> bool:
+    required_keys = ("tickers", "sentiment", "image_prompt", "image_url")
+    return all(key in post for key in required_keys)
+
+
 class Scheduler:
     def __init__(self, state: SharedState, posts_path: Path) -> None:
         load_dotenv()
@@ -71,7 +76,15 @@ class Scheduler:
         )
 
     async def run(self) -> None:
-        posts = load_posts(self.posts_path)
+        loaded_posts = load_posts(self.posts_path)
+        posts = [post for post in loaded_posts if is_modern_post(post)]
+        if len(posts) != len(loaded_posts):
+            save_posts(self.posts_path, posts)
+            await self.state.add_log(
+                "warn",
+                f"Pruned {len(loaded_posts) - len(posts)} legacy posts from history",
+            )
+
         for post in posts[-200:]:
             await self.state.add_post(post)
 
