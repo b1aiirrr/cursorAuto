@@ -1,0 +1,17 @@
+<svg width="1080" height="320" viewBox="0 0 1080 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="320" rx="40" fill="#070B14"/>
+  <rect x="18" y="18" width="1044" height="284" rx="30" stroke="#06B6D4" stroke-opacity="0.25" stroke-width="4"/>
+  <g filter="url(#glow)">
+    <path d="M90 198L152 132L196 176L274 96" stroke="#22D3EE" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="274" cy="96" r="14" fill="#22D3EE"/>
+  </g>
+  <text x="330" y="150" fill="#E2E8F0" font-family="Inter, Arial, sans-serif" font-size="66" font-weight="700">Sentinel Square</text>
+  <text x="332" y="208" fill="#67E8F9" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="500">AUTONOMOUS MARKET INTELLIGENCE</text>
+  <defs>
+    <filter id="glow" x="70" y="76" width="230" height="142" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="6" result="effect1_foregroundBlur"/>
+    </filter>
+  </defs>
+</svg>

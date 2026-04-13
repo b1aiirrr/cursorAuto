@@ -28,11 +28,16 @@ def get_allowed_origins() -> list[str]:
     return origins or ["http://localhost:3000", "http://localhost:3001"]
 
 
+def get_origin_regex() -> str:
+    return os.getenv("CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_allowed_origins(),
+    allow_origin_regex=get_origin_regex(),
     allow_credentials=False,
-    allow_methods=["GET", "OPTIONS"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 

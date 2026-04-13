@@ -18,11 +18,16 @@ class BinanceSquarePublisher:
         ).strip()
         self.enabled = os.getenv("BINANCE_REAL_POSTING", "false").lower() == "true"
         self.timeout = float(os.getenv("BINANCE_HTTP_TIMEOUT_SECONDS", "20"))
+        self.media_post_url = os.getenv("BINANCE_SQUARE_MEDIA_POST_URL", "").strip()
 
     def is_configured(self) -> bool:
         return self.enabled and bool(self.square_open_api_key and self.post_url)
 
-    async def publish(self, content: str) -> dict:
+    async def _post(self, url: str, payload: dict, headers: dict) -> httpx.Response:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            return await client.post(url, json=payload, headers=headers)
+
+    async def publish(self, content: str, image_url: str | None = None) -> dict:
         if not self.enabled:
             raise PublisherError("Real posting disabled. Set BINANCE_REAL_POSTING=true.")
         if not self.square_open_api_key:
@@ -34,9 +39,14 @@ class BinanceSquarePublisher:
             "clienttype": "binanceSkill",
         }
         payload = {"bodyTextOnly": content}
+        response = await self._post(self.post_url, payload, headers)
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(self.post_url, json=payload, headers=headers)
+        # Optional media endpoint: if configured and image URL provided, try media post first.
+        if image_url and self.media_post_url:
+            media_payload = {"bodyTextOnly": content, "imageUrl": image_url}
+            media_response = await self._post(self.media_post_url, media_payload, headers)
+            if media_response.status_code < 400:
+                response = media_response
 
         if response.status_code >= 400:
             raise PublisherError(

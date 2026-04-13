@@ -46,7 +46,9 @@ class Scheduler:
 
     async def _publish(self, payload: dict[str, str]) -> None:
         if self.publisher.is_configured():
-            response = await self.publisher.publish(payload["body"])
+            response = await self.publisher.publish(
+                payload["body"], image_url=payload.get("image_url")
+            )
             reference = response.get("id") or response.get("postId") or "unknown"
             await self.state.add_log(
                 "info",
@@ -95,11 +97,14 @@ class Scheduler:
                 continue
 
             self.state.status = "posting"
-            post = build_post()
+            post = await build_post()
             payload = {
                 "persona": post.persona,
-                "prompt": post.prompt,
                 "body": post.body,
+                "tickers": post.tickers,
+                "sentiment": post.sentiment,
+                "image_prompt": post.image_prompt,
+                "image_url": post.image_url,
                 "posted_at": now.isoformat(),
                 "posted_date": now.date().isoformat(),
                 "channel": "binance-square",

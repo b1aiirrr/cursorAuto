@@ -63,6 +63,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-bg to-slate-900 p-6 md:p-10">
+      <section className="mx-auto mb-6 max-w-7xl">
+        <div className="rounded-2xl border border-cyan-500/20 bg-panel p-4 shadow-neon">
+          <img src="/sentinel-logo.svg" alt="Sentinel Square" className="h-auto w-full rounded-xl" />
+        </div>
+      </section>
       <section className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
         <article className="rounded-2xl border border-cyan-500/20 bg-panel p-6 shadow-neon">
           <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">Engine Status</p>
