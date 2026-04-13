@@ -43,7 +43,14 @@ export function ActivityLog({ apiBase, fallbackLogs }: Props) {
       <div className="h-[420px] overflow-auto rounded-xl border border-slate-800 bg-slate-950/70 p-4 font-mono text-xs">
         {rendered.slice().reverse().map((item, idx) => (
           <p key={`${item.ts}-${idx}`} className="mb-2 text-slate-300">
-            <span className="text-cyan-400">[{new Date(item.ts).toLocaleTimeString()}]</span>{" "}
+            <span className="text-cyan-400">
+              [
+              {new Date(item.ts).toLocaleTimeString("en-KE", {
+                timeZone: "Africa/Nairobi",
+                hour12: false,
+              })}{" "}
+              EAT]
+            </span>{" "}
             <span className="uppercase text-slate-500">{item.level}</span> {item.message}
           </p>
         ))}

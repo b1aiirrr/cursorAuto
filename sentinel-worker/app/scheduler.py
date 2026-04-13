@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import os
 import random
-from dataclasses import asdict
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -11,6 +10,7 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 from .engine import build_post
+from .publisher import BinanceSquarePublisher, PublisherError
 from .state import SharedState, load_posts, save_posts
 
 MIN_JITTER_MINUTES = 17
@@ -28,6 +28,7 @@ class Scheduler:
         self.sleep_start = self._parse_clock(os.getenv("SLEEP_WINDOW_START", "02:00"))
         self.sleep_end = self._parse_clock(os.getenv("SLEEP_WINDOW_END", "07:00"))
         self.target_posts_today = random.randint(MIN_POSTS, MAX_POSTS)
+        self.publisher = BinanceSquarePublisher()
 
     def _parse_clock(self, value: str) -> time:
         hour, minute = value.split(":")
@@ -43,9 +44,29 @@ class Scheduler:
             wake = wake + timedelta(days=1)
         return wake
 
-    async def _simulate_publish(self, payload: dict[str, str]) -> None:
+    async def _publish(self, payload: dict[str, str]) -> None:
+        if self.publisher.is_configured():
+            response = await self.publisher.publish(payload["body"])
+            reference = response.get("id") or response.get("postId") or "unknown"
+            await self.state.add_log(
+                "info",
+                f"Published {payload['persona']} post to Binance Square (ref: {reference})",
+            )
+            return
+
+        if self.publisher.enabled:
+            raise PublisherError(
+                "BINANCE_REAL_POSTING=true but required publisher env is missing."
+            )
+
         await asyncio.sleep(random.uniform(0.4, 1.4))
-        await self.state.add_log("info", f"Published {payload['persona']} post to Binance Square")
+        await self.state.add_log(
+            "warn",
+            "Real posting disabled; running in simulation mode.",
+        )
+        await self.state.add_log(
+            "info", f"Simulated publish for {payload['persona']} post to Binance Square"
+        )
 
     async def run(self) -> None:
         posts = load_posts(self.posts_path)
@@ -56,7 +77,9 @@ class Scheduler:
 
         while True:
             now = datetime.now(self.tz)
-            posted_today = [p for p in posts if p.get("posted_date") == date.today().isoformat()]
+            posted_today = [
+                p for p in posts if p.get("posted_date") == now.date().isoformat()
+            ]
             if len(posted_today) >= self.target_posts_today:
                 self.target_posts_today = random.randint(MIN_POSTS, MAX_POSTS)
                 await self.state.add_log("info", f"Daily target reached. Resetting next target to {self.target_posts_today} posts")
@@ -66,7 +89,7 @@ class Scheduler:
             if self._in_sleep_window(now):
                 self.state.status = "sleeping"
                 wakeup = self._next_wakeup(now)
-                self.state.next_post_at = wakeup.astimezone(ZoneInfo("UTC")).replace(tzinfo=None)
+                self.state.next_post_at = wakeup
                 await self.state.add_log("warn", f"Sleep window active until {wakeup.isoformat()}")
                 await asyncio.sleep(max((wakeup - now).total_seconds(), 60))
                 continue
@@ -77,18 +100,25 @@ class Scheduler:
                 "persona": post.persona,
                 "prompt": post.prompt,
                 "body": post.body,
-                "posted_at": datetime.utcnow().isoformat(),
-                "posted_date": date.today().isoformat(),
+                "posted_at": now.isoformat(),
+                "posted_date": now.date().isoformat(),
                 "channel": "binance-square",
             }
 
-            await self._simulate_publish(payload)
+            try:
+                await self._publish(payload)
+            except PublisherError as exc:
+                self.state.status = "offline"
+                await self.state.add_log("error", str(exc))
+                await asyncio.sleep(60)
+                continue
+
             posts.append(payload)
             save_posts(self.posts_path, posts)
             await self.state.add_post(payload)
 
             wait_minutes = random.randint(MIN_JITTER_MINUTES, MAX_JITTER_MINUTES)
             next_at = datetime.now(self.tz) + timedelta(minutes=wait_minutes)
-            self.state.next_post_at = next_at.astimezone(ZoneInfo("UTC")).replace(tzinfo=None)
+            self.state.next_post_at = next_at
             await self.state.add_log("info", f"Next post scheduled in {wait_minutes} minutes")
             await asyncio.sleep(wait_minutes * 60)

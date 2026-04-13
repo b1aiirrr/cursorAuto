@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel
 
@@ -17,6 +18,7 @@ class LogEntry(BaseModel):
 
 class SharedState:
     def __init__(self) -> None:
+        self.tz = ZoneInfo("Africa/Nairobi")
         self.status: str = "offline"
         self.next_post_at: datetime | None = None
         self.last_post_at: datetime | None = None
@@ -26,7 +28,7 @@ class SharedState:
         self.lock = asyncio.Lock()
 
     async def add_log(self, level: str, message: str) -> None:
-        entry = LogEntry(ts=datetime.utcnow().isoformat(), level=level, message=message)
+        entry = LogEntry(ts=datetime.now(self.tz).isoformat(), level=level, message=message)
         payload = json.dumps(entry.model_dump())
         async with self.lock:
             self.logs.append(entry)
@@ -46,7 +48,7 @@ class SharedState:
             self.post_history.append(post)
             if len(self.post_history) > 1000:
                 self.post_history = self.post_history[-1000:]
-            self.last_post_at = datetime.utcnow()
+            self.last_post_at = datetime.now(self.tz)
 
     async def snapshot(self) -> dict[str, Any]:
         async with self.lock:
@@ -54,7 +56,11 @@ class SharedState:
                 "status": self.status,
                 "next_post_at": self.next_post_at.isoformat() if self.next_post_at else None,
                 "last_post_at": self.last_post_at.isoformat() if self.last_post_at else None,
-                "posts_today": sum(1 for p in self.post_history if p.get("posted_date") == datetime.utcnow().date().isoformat()),
+                "posts_today": sum(
+                    1
+                    for p in self.post_history
+                    if p.get("posted_date") == datetime.now(self.tz).date().isoformat()
+                ),
                 "history_size": len(self.post_history),
                 "recent_logs": [entry.model_dump() for entry in self.logs[-25:]],
             }

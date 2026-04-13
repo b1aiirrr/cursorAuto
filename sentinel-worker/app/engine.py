@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 PERSONA_WEIGHTS = {
     "technical_analyst": 0.30,
@@ -49,9 +50,10 @@ def choose_persona() -> str:
 
 
 def build_post() -> ContentPost:
+    tz = ZoneInfo("Africa/Nairobi")
     persona = choose_persona()
     prompt = random.choice(PERSONA_PROMPTS[persona])
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    timestamp = datetime.now(tz).strftime("%Y-%m-%d %H:%M EAT")
     body = (
         f"[{persona.replace('_', ' ').title()}] {prompt}\n\n"
         "NFA. Stay risk-aware and DYOR.\n"

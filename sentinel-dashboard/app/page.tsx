@@ -53,6 +53,14 @@ export default function Home() {
     return [hours, minutes, seconds].map((v) => String(v).padStart(2, "0")).join(":");
   }, [status.next_post_at, now]);
 
+  const nextPostEAT = useMemo(() => {
+    if (!status.next_post_at) return "Not scheduled";
+    return new Date(status.next_post_at).toLocaleString("en-KE", {
+      timeZone: "Africa/Nairobi",
+      hour12: false,
+    });
+  }, [status.next_post_at]);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-bg to-slate-900 p-6 md:p-10">
       <section className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
@@ -69,6 +77,7 @@ export default function Home() {
         <article className="rounded-2xl border border-cyan-500/20 bg-panel p-6 shadow-neon">
           <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">Next Post Countdown</p>
           <p className="mt-5 font-mono text-4xl text-cyan-200">{countdown}</p>
+          <p className="mt-2 text-xs text-slate-500">Next post time (EAT): {nextPostEAT}</p>
           <p className="mt-3 text-sm text-slate-400">Target cadence uses randomized jitter and sleep windows.</p>
         </article>
 
