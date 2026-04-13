@@ -27,6 +27,7 @@ logs/
 .env
 .env.*
 !.env.example
+!*.env*.example
 *.pem
 *.key
 *.crt
@@ -40,8 +41,8 @@ Thumbs.db
 .idea/
 
 # Runtime data
-sentinel-square/sentinel-worker/data/posts.json
-sentinel-square/sentinel-worker/data/*.json
+sentinel-worker/data/posts.json
+sentinel-worker/data/*.json
 
 # Build caches
 .cache/

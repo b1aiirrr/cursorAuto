@@ -51,7 +51,7 @@ TIMEZONE=Africa/Nairobi
 cd sentinel-square/sentinel-dashboard
 npm install
 # optional API override
-# set NEXT_PUBLIC_WORKER_URL=http://localhost:8585
+# set NEXT_PUBLIC_WORKER_URL=http://localhost:8585/api
 npm run dev
 ```
 

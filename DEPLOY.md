@@ -68,3 +68,72 @@ cd ../sentinel-dashboard && npm install && npm run build
 pm2 restart sentinel-worker
 pm2 restart sentinel-dashboard
 ```
+
+## 7) Vercel deployment checklist (frontend in subfolder)
+
+Use these values in the Vercel dashboard when importing `b1aiirrr/cursorAuto`:
+
+- Project framework: `Next.js`
+- Root Directory: `sentinel-dashboard`
+- Install Command: `npm install`
+- Build Command: `npm run build`
+- Output Directory: `.next`
+- Environment Variable:
+  - `NEXT_PUBLIC_WORKER_URL=https://api.yourdomain.com/api`
+
+`sentinel-dashboard/vercel.json` is already configured with matching build settings.
+
+## 8) Secure API proxy on DigitalOcean (`api.yourdomain.com`)
+
+Install Nginx + Certbot:
+
+```bash
+apt update
+apt install -y nginx certbot python3-certbot-nginx
+ufw allow 'Nginx Full'
+```
+
+Create Nginx site:
+
+```bash
+nano /etc/nginx/sites-available/sentinel-api
+```
+
+Paste:
+
+```nginx
+server {
+    listen 80;
+    server_name api.yourdomain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8585;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600;
+    }
+}
+```
+
+Enable and reload:
+
+```bash
+ln -s /etc/nginx/sites-available/sentinel-api /etc/nginx/sites-enabled/sentinel-api
+nginx -t
+systemctl reload nginx
+```
+
+Issue HTTPS certificate:
+
+```bash
+certbot --nginx -d api.yourdomain.com
+```
+
+After TLS is active, set your Vercel env var to:
+
+```env
+NEXT_PUBLIC_WORKER_URL=https://api.yourdomain.com/api
+```

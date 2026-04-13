@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ActivityLog } from "@/components/activity-log";
 import { StatusPulse } from "@/components/status-pulse";
+import { getWorkerApiBaseUrl } from "@/lib/config";
 import { WorkerStatus } from "@/lib/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_WORKER_URL ?? "http://localhost:8585";
+const API_BASE = getWorkerApiBaseUrl();
 
 const initialStatus: WorkerStatus = {
   status: "offline",
