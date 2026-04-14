@@ -67,7 +67,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-b from-[#0a0c0f] via-bg to-[#0f1217] p-6 md:p-10">
       <section className="mx-auto mb-6 max-w-7xl">
         <div className="rounded-2xl border border-warning/30 bg-panel p-4 shadow-glow">
-          <img src="/sentinel-logo.svg" alt="SquareAutomation" className="h-auto w-full rounded-xl" />
+          <img src="/squareautomation-logo.svg" alt="SquareAutomation" className="h-auto w-full rounded-xl" />
         </div>
       </section>
       <section className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">

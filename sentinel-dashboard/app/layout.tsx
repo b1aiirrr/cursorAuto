@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 export const metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className={`${plexSans.variable} ${jetbrainsMono.variable}`}>
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
