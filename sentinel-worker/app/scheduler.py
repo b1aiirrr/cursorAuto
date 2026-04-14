@@ -24,6 +24,14 @@ def is_modern_post(post: dict) -> bool:
     return all(key in post for key in required_keys)
 
 
+def normalize_post(post: dict) -> dict:
+    normalized = dict(post)
+    normalized.setdefault("trend_topics", [])
+    normalized.setdefault("trend_source", "legacy")
+    normalized.setdefault("trend_confidence", 0.0)
+    return normalized
+
+
 class Scheduler:
     def __init__(self, state: SharedState, posts_path: Path) -> None:
         load_dotenv()
@@ -54,11 +62,41 @@ class Scheduler:
             response = await self.publisher.publish(
                 payload["body"], image_url=payload.get("image_url")
             )
-            reference = response.get("id") or response.get("postId") or "unknown"
+            nested_data = response.get("data", {}) if isinstance(response, dict) else {}
+            reference = (
+                response.get("id")
+                or response.get("postId")
+                or nested_data.get("id")
+                or nested_data.get("postId")
+                or "unknown"
+            )
             await self.state.add_log(
                 "info",
-                f"Published {payload['persona']} post to Binance Square (ref: {reference})",
+                f"Published {payload['persona']} post to Primary Binance Square (ref: {reference})",
             )
+
+            if self.publisher.friend_square_api_key:
+                try:
+                    friend_response = await self.publisher.publish_to_friend(
+                        payload["body"], image_url=payload.get("image_url")
+                    )
+                    friend_nested = friend_response.get("data", {}) if isinstance(friend_response, dict) else {}
+                    friend_ref = (
+                        friend_response.get("id")
+                        or friend_response.get("postId")
+                        or friend_nested.get("id")
+                        or friend_nested.get("postId")
+                        or "unknown"
+                    )
+                    await self.state.add_log(
+                        "info",
+                        f"Cross-posted {payload['persona']} post to Friend Binance Square (ref: {friend_ref})",
+                    )
+                except PublisherError as exc:
+                    await self.state.add_log(
+                        "error",
+                        f"Failed to cross-post to Friend account: {exc}",
+                    )
             return
 
         if self.publisher.enabled:
@@ -77,7 +115,7 @@ class Scheduler:
 
     async def run(self) -> None:
         loaded_posts = load_posts(self.posts_path)
-        posts = [post for post in loaded_posts if is_modern_post(post)]
+        posts = [normalize_post(post) for post in loaded_posts if is_modern_post(post)]
         if len(posts) != len(loaded_posts):
             save_posts(self.posts_path, posts)
             await self.state.add_log(
@@ -118,6 +156,9 @@ class Scheduler:
                 "sentiment": post.sentiment,
                 "image_prompt": post.image_prompt,
                 "image_url": post.image_url,
+                "trend_topics": post.trend_topics,
+                "trend_source": post.trend_source,
+                "trend_confidence": post.trend_confidence,
                 "posted_at": now.isoformat(),
                 "posted_date": now.date().isoformat(),
                 "channel": "binance-square",

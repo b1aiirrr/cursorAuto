@@ -52,16 +52,29 @@ class SharedState:
 
     async def snapshot(self) -> dict[str, Any]:
         async with self.lock:
+            today = datetime.now(self.tz).date().isoformat()
+            today_posts = [p for p in self.post_history if p.get("posted_date") == today]
+            confidence_values = [
+                float(p.get("trend_confidence", 0.0))
+                for p in today_posts
+                if isinstance(p.get("trend_confidence", 0.0), (int, float))
+            ]
+            avg_confidence = (
+                round(sum(confidence_values) / len(confidence_values), 2)
+                if confidence_values
+                else 0.0
+            )
+            binance_priority_count = sum(
+                1 for p in today_posts if p.get("trend_source") == "binance-square-priority"
+            )
             return {
                 "status": self.status,
                 "next_post_at": self.next_post_at.isoformat() if self.next_post_at else None,
                 "last_post_at": self.last_post_at.isoformat() if self.last_post_at else None,
-                "posts_today": sum(
-                    1
-                    for p in self.post_history
-                    if p.get("posted_date") == datetime.now(self.tz).date().isoformat()
-                ),
+                "posts_today": len(today_posts),
                 "history_size": len(self.post_history),
+                "trend_confidence_today_avg": avg_confidence,
+                "trend_priority_posts_today": binance_priority_count,
                 "recent_logs": [entry.model_dump() for entry in self.logs[-25:]],
             }
 
