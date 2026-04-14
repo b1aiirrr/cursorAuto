@@ -2,8 +2,16 @@ import { Analytics } from "@vercel/analytics/next";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 export const metadata = {
-  title: "Sentinel Square Dashboard",
-  description: "Command center for autonomous Binance Square content agent",
+  metadataBase: new URL("https://squareautomation.vercel.app"),
+  title: "SquareAutomation Dashboard",
+  description: "Command center for autonomous Binance Square automation",
+  openGraph: {
+    title: "SquareAutomation Dashboard",
+    description: "Command center for autonomous Binance Square automation",
+    url: "https://squareautomation.vercel.app",
+    siteName: "SquareAutomation",
+    type: "website",
+  },
 };
 
 import "./globals.css";

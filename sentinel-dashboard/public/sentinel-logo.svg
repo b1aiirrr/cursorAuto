@@ -21,6 +21,6 @@
     <circle cx="274" cy="96" r="14" fill="#F0B90B"/>
   </g>
   <rect x="86" y="236" width="208" height="8" rx="4" fill="#2B3139"/>
-  <text x="330" y="150" fill="#F5F5F5" font-family="'IBM Plex Sans', 'Inter', Arial, sans-serif" font-size="66" font-weight="700">Sentinel Square</text>
+  <text x="330" y="150" fill="#F5F5F5" font-family="'IBM Plex Sans', 'Inter', Arial, sans-serif" font-size="66" font-weight="700">SquareAutomation</text>
   <text x="332" y="208" fill="#F0B90B" font-family="'IBM Plex Sans', 'Inter', Arial, sans-serif" font-size="30" font-weight="600">AUTONOMOUS MARKET INTELLIGENCE</text>
 </svg>
