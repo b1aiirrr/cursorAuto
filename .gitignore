@@ -48,3 +48,5 @@ sentinel-worker/data/*.json
 .cache/
 .tmp/
 tmp/
+
+.vercel

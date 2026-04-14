@@ -1,0 +1,9 @@
+{
+  "name": "cursor-auto-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:dashboard": "npm install --prefix sentinel-dashboard",
+    "build": "npm run build --prefix sentinel-dashboard"
+  }
+}

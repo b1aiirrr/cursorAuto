@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "installCommand": "npm run install:dashboard",
+  "buildCommand": "npm run build",
+  "outputDirectory": "sentinel-dashboard/.next"
+}
