@@ -15,6 +15,8 @@ const initialStatus: WorkerStatus = {
   last_post_at: null,
   posts_today: 0,
   history_size: 0,
+  trend_confidence_today_avg: 0,
+  trend_priority_posts_today: 0,
   recent_logs: [],
 };
 
@@ -62,40 +64,51 @@ export default function Home() {
   }, [status.next_post_at]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-bg to-slate-900 p-6 md:p-10">
+    <main className="min-h-screen bg-gradient-to-b from-[#0a0c0f] via-bg to-[#0f1217] p-6 md:p-10">
       <section className="mx-auto mb-6 max-w-7xl">
-        <div className="rounded-2xl border border-cyan-500/20 bg-panel p-4 shadow-neon">
+        <div className="rounded-2xl border border-warning/30 bg-panel p-4 shadow-glow">
           <img src="/sentinel-logo.svg" alt="Sentinel Square" className="h-auto w-full rounded-xl" />
         </div>
       </section>
       <section className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
-        <article className="rounded-2xl border border-cyan-500/20 bg-panel p-6 shadow-neon">
-          <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">Engine Status</p>
+        <article className="rounded-2xl border border-warning/20 bg-panel p-6 shadow-neon">
+          <p className="text-xs uppercase tracking-[0.25em] text-warning">Engine Status</p>
           <div className="mt-5 flex items-center justify-between">
             <StatusPulse status={status.status} />
-            <span className="rounded-full border border-cyan-400/30 px-4 py-1 text-sm text-cyan-200">
+            <span className="rounded-full border border-warning/30 px-4 py-1 text-sm text-warning">
               {status.status}
             </span>
           </div>
+          <p className="mt-4 text-sm text-textSoft">Live operating mode, synced from worker runtime.</p>
         </article>
 
-        <article className="rounded-2xl border border-cyan-500/20 bg-panel p-6 shadow-neon">
-          <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">Next Post Countdown</p>
-          <p className="mt-5 font-mono text-4xl text-cyan-200">{countdown}</p>
-          <p className="mt-2 text-xs text-slate-500">Next post time (EAT): {nextPostEAT}</p>
-          <p className="mt-3 text-sm text-slate-400">Target cadence uses randomized jitter and sleep windows.</p>
+        <article className="rounded-2xl border border-warning/20 bg-panel p-6 shadow-neon">
+          <p className="text-xs uppercase tracking-[0.25em] text-warning">Next Post Countdown</p>
+          <p className="metric-font mt-5 text-4xl text-slate-100">{countdown}</p>
+          <p className="mt-2 text-xs text-textSoft">Next post time (EAT): {nextPostEAT}</p>
+          <p className="mt-3 text-sm text-textSoft">Cadence uses randomized jitter plus sleep windows.</p>
         </article>
 
-        <article className="rounded-2xl border border-cyan-500/20 bg-panel p-6 shadow-neon">
-          <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">Output Metrics</p>
-          <div className="mt-5 grid gap-3">
-            <div className="rounded-lg border border-slate-700/80 p-3">
-              <p className="text-xs text-slate-400">Posts Today</p>
-              <p className="text-xl font-semibold text-cyan-100">{status.posts_today}</p>
+        <article className="rounded-2xl border border-warning/20 bg-panel p-6 shadow-neon">
+          <p className="text-xs uppercase tracking-[0.25em] text-warning">Output Metrics</p>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="rounded-lg border border-panelAlt bg-[#11151a] p-3">
+              <p className="text-xs text-textSoft">Posts Today</p>
+              <p className="text-xl font-semibold text-slate-100">{status.posts_today}</p>
             </div>
-            <div className="rounded-lg border border-slate-700/80 p-3">
-              <p className="text-xs text-slate-400">Historical Posts</p>
-              <p className="text-xl font-semibold text-cyan-100">{status.history_size}</p>
+            <div className="rounded-lg border border-panelAlt bg-[#11151a] p-3">
+              <p className="text-xs text-textSoft">Historical Posts</p>
+              <p className="text-xl font-semibold text-slate-100">{status.history_size}</p>
+            </div>
+            <div className="rounded-lg border border-panelAlt bg-[#11151a] p-3">
+              <p className="text-xs text-textSoft">Trend Priority Posts</p>
+              <p className="text-xl font-semibold text-warning">{status.trend_priority_posts_today ?? 0}</p>
+            </div>
+            <div className="rounded-lg border border-panelAlt bg-[#11151a] p-3">
+              <p className="text-xs text-textSoft">Trend Confidence Avg</p>
+              <p className="metric-font text-xl font-semibold text-warning">
+                {Number(status.trend_confidence_today_avg ?? 0).toFixed(2)}
+              </p>
             </div>
           </div>
         </article>

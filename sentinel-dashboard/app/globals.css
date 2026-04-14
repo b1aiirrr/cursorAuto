@@ -7,5 +7,10 @@
 }
 
 body {
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   @apply bg-bg text-slate-100 antialiased;
+}
+
+.metric-font {
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }

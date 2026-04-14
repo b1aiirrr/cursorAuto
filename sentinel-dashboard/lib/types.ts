@@ -10,5 +10,7 @@ export type WorkerStatus = {
   last_post_at: string | null;
   posts_today: number;
   history_size: number;
+  trend_confidence_today_avg?: number;
+  trend_priority_posts_today?: number;
   recent_logs: LogEntry[];
 };
