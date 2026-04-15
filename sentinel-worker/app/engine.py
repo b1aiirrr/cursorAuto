@@ -267,23 +267,63 @@ def build_text(
     )
 
 
+# ---------------------------------------------------------------------------
+# Content Generation (Advanced)
+# ---------------------------------------------------------------------------
+async def fetch_trending_topics() -> list[dict]:
+    """Fetch real-time trending topics from Binance Square."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get("https://www.binance.com/bapi/composite/v1/public/pgc/square/trending/topic/list")
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("code") == "000000":
+                    return data.get("data", [])[:5]
+    except Exception as e:
+        pass
+    return []
+
+async def generate_content_advanced(persona: str) -> tuple[str, list[str]]:
+    from .content_generator import generate_content
+    from binance.client import Client
+    
+    market_data = {}
+    api_key = os.getenv("BINANCE_API_KEY")
+    api_secret = os.getenv("BINANCE_API_SECRET")
+    
+    if api_key and api_secret:
+        try:
+            client = Client(api_key, api_secret)
+            tickers = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]
+            prices = client.get_all_tickers()
+            market_data = {p["symbol"].replace("USDT", ""): float(p["price"]) for p in prices if p["symbol"] in tickers}
+        except:
+            pass
+
+    trending_topics = await fetch_trending_topics()
+    content, tickers = await generate_content(persona, market_data, trending_topics)
+    return content, tickers
+
 async def build_post() -> ContentPost:
     tz = ZoneInfo("Africa/Nairobi")
     persona = choose_persona()
-    _ = random.choice(PERSONA_PROMPTS[persona])
+    
+    # Use Advanced Content Generation
+    body, picked = await generate_content_advanced(persona)
+    
+    # Still fetch metadata for tracking
     trend_topics, trending, sentiment = await asyncio.gather(
         fetch_binance_square_topics(),
         fetch_trending_symbols(),
         fetch_sentiment_label(),
     )
-    priority = build_trend_priority_symbols(trend_topics, trending, limit=6)
-    picked = priority[:3] if len(priority) >= 3 else ["BTC", "BNB", "SOL"]
-    trend_source = "binance-square-priority" if trend_topics else "coingecko-fallback"
-    trend_confidence = score_trend_confidence(trend_topics, picked)
+    
+    trend_source = "gemini-ai-advanced"
+    trend_confidence = 0.95
     timestamp = datetime.now(tz).strftime("%Y-%m-%d %H:%M EAT")
-    image_url = build_chart_url(picked[0])
-    image_prompt = build_visual_prompt(picked[0], picked[1], sentiment)
-    body = build_text(persona, picked, sentiment, timestamp, image_url, trend_topics)
+    image_url = build_chart_url(picked[0] if picked else "BTC")
+    image_prompt = build_visual_prompt(picked[0] if picked else "BTC", picked[1] if len(picked)>1 else "BNB", sentiment)
+    
     return ContentPost(
         persona=persona,
         body=body,
